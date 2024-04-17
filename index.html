@@ -12,14 +12,19 @@
         <h1>Tic Tac Toe</h1>
     </header>
     <div class="side">
-        <label for="player1">Player 1 Name:</label>
-        <input type="text" value="dfahadh" id="player1" name="player1">
-        <label for="player2">Player 2 name:</label>
-        <input type="text" id="player2" name="player2">
-        <label for="ai">player against ai</label>
+        <label for="playerOne">Player 1 Name:</label>
+        <input type="text" value="playerOne" id="playerOne" class="playerName" name="player1">
+        <label for="playerTwo">Player 2 name:</label>
+        <input type="text" value="playerTwo" id="playerTwo" name="player2" class="playerName">
+        <label for="ai">play against ai</label>
         <input type="checkbox" id="ai" name="ai">
+        <button id="start">Start</button>
     </div>
     <main>
+        <div class="playerInfo playerOne">
+            <h1 id="playerOneName">playerOne</h1>
+            <h2 id="playerOneWins">Wins: 0</h2>
+        </div>
         <div class="playField">
             <div class="field"></div>
             <div class="field"></div>
@@ -31,6 +36,11 @@
             <div class="field"></div>
             <div class="field"></div>
         </div>
+        <div class="playerInfo playerTwo">
+            <h1 id="playerTwoName">playerTwo</h1>
+            <h2 id="playerTwoWins">Wins: 0 </h2>
+        </div>
+
     </main>
 </body>
 </html>
