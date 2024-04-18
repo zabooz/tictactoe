@@ -104,15 +104,15 @@
 
             const win = ticTacToe.checkWin(player)
             if(ticTacToe.ai.checked && !win){
-               
+                
                 ticTacToe.skyNet()
             }
 
 
             ticTacToe.render(player,field)
             ticTacToe.removeListener(field)
-
             const move = ++ticTacToe.data.move
+            console.log(move)
             if(win || move === 9){
                 return ticTacToe.gameEnd(player,win)
             }
@@ -226,6 +226,7 @@
         skyNet : function(){
             const player = ticTacToe.playerTurn()
             pick = ticTacToe.aiLogic.possPicks()
+            const move = ++ticTacToe.data.move
             this.data.playerTwo.picks.push(pick) 
             const field = (function (){
                 for(const field of ticTacToe.fields){
@@ -237,11 +238,13 @@
             })()
            
             setTimeout(function(){
+                if(move <9)
+                ticTacToe.removeListener(field)
                 ticTacToe.render(player,field)
             },300)
             
             const win = ticTacToe.checkWin(player)
-            if(win){
+            if(win || move >= 9){
                 return ticTacToe.gameEnd(player,win)
             }
         },
