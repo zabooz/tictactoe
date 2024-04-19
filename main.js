@@ -24,7 +24,6 @@
             round:0,
             win:false,
             start:true,
-            aiFirstPick: true,
         },
         cacheDom : function(){
             this.fields = document.querySelectorAll('.field')
@@ -201,18 +200,38 @@
             field.append(span)
             
         },
+        aiData:{
+
+        },
         aiLogic :{
 
-                possPicks : function(){
-                    const playerOnePicks = ticTacToe.data.playerOne.picks
-                    const playerTwoPicks = ticTacToe.data.playerTwo.picks
-                    const winCombs = ticTacToe.data.winCombs
+            possPicks : function(player){
+                const enemy = player === 'playerOne' ? 'playerTwo' : 'playerOne'
+                
+                ticTacToe.aiData[player] = player
+                ticTacToe.aiData[enemy] = enemy
+
+                
+                
+                const playerOnePicks = ticTacToe.data[player].picks
+                const playerTwoPicks = ticTacToe.data[enemy].picks
+                const winCombs = ticTacToe.data.winCombs
+                
+                const dangerArr = []
+                const bestArr = []
+                
+                    // const possPicks = this.possiblePicks(playerOnePicks,playerTwoPicks)
+                    // const enemyPicks = this.enemyPicks(playerOnePicks,playerTwoPicks,winCombs)
+                    // const playerPicks = this.playerPicks(playerOnePicks,playerTwoPicks,winCombs)
+                    // this.dangerPick(enemyPicks,playerOnePicks,possPicks,dangerArr)
+                    // this.bestPick(playerPicks[0],playerTwoPicks,possPicks,bestArr)
+                   
+                    
+
                     const possPicks = (function(){
                         
-                        //RAndom algo-----------------------
                         const arr = []
                         const nums = [0,1,2,3,4,5,6,7,8]
-                        
                         
                         nums.forEach(num => {
                             if(!playerOnePicks.includes(num) && !playerTwoPicks.includes(num)){
@@ -256,8 +275,6 @@
                         
                         const possArr = []
                         const winningArr = []
-                        const dangerArr = []
-                        const bestArr = []
                         winCombs.forEach(comb => {
                             if(comb.every(getPossWins)){
                                 possArr.push(comb)
@@ -271,10 +288,12 @@
                                 winningArr.push(comb)
                             }
                         })
-                        
+
+
+
                         enemyArr2.forEach(comb => {
                             let count = 0
-                            playerOnePicks.forEach((item,index) => {
+                            playerOnePicks.forEach(item => {
                                 if(comb.includes(item)){
                                     ++count
                                     if(count ===2){
@@ -307,8 +326,11 @@
                         goodPick = (possArr,winningArr) =>  {
 
                             let array
-                            if(winningArr.length >0 || possArr.length >0 ){
-                                array = winningArr.length !== 0 ? winningArr : possArr 
+                            if(winningArr.length >0){
+                                array = [...new Set(winningArr.flat())]
+
+                            } else if(possArr.length >0 ){
+                                array = possArr 
 
                             }else{
                                 array = [...possPicks]
@@ -320,19 +342,28 @@
 
                             arr.forEach(num => count[num] = (count[num] || 0) +1)
 
-                            let freq = 0
                             let maxfreq = 0
+                            let numArr = []
+                            console.log(count)
                             
                             for(const num in count){
+                                
+                                
+                                if(count[num] > maxfreq){
 
-                                if(count[num] >= maxfreq){
-                                        console.log(num,possPicks)
-                                            freq = num
-                                            maxfreq = count[num]
+                                    numArr = []
+                                    maxfreq = count[num]
+                                    numArr.push(+num)
+                                }else if(count[num] === maxfreq){
+                                    numArr.push(+num)
                                 }
+
                             }
                             
-                                return +freq
+                                console.log(numArr)
+                                const rdm = Math.floor(Math.random()*numArr.length)
+
+                                return numArr[rdm]
                             
                         }
 
@@ -345,7 +376,7 @@
                         // }
 
 
-                        necPick = (dangerArr,bestArr) => {
+                        necPick = (bestArr,dangerArr) => {
 
                             const arr = bestArr.length>0? bestArr : dangerArr
 
@@ -364,18 +395,171 @@
                             pick = necPick(dangerArr,bestArr)
                             
                         }else{
-                            pick = goodPick(possArr,winningArr)
+                            pick = this.goodPick(winningArr,possPicks)
                            
                         }
                     
                     return pick
                 },
+                possiblePicks : function(playerOnePicks,playerTwoPicks){
+
+                    const possPicks = (function(){
+                        
+                        const arr = []
+                        const nums = [0,1,2,3,4,5,6,7,8]
+                        
+                        nums.forEach(num => {
+                            if(!playerOnePicks.includes(num) && !playerTwoPicks.includes(num)){
+                                arr.push(num)
+                            }
+                        })
+                        
+                        return arr
+                    })()
+
+                    return possPicks
+                },
+                enemyPicks : function(playerOnePicks,playerTwoPicks,winCombs){
+
+                    const enemyPossWins = (value) => !playerTwoPicks.includes(value)
+                    const enemyCheckWins = (value) => playerOnePicks.includes(value)
+                    const enemyArr = []
+                    const enemyArr2 = []
+                    
+
+                    winCombs.forEach(comb => {
+                        if(comb.every(enemyPossWins)){
+                            enemyArr.push(comb)
+                        }
+                    })
+                    
+                    enemyArr.forEach(comb => {
+                        if(comb.some(enemyCheckWins)){
+                            enemyArr2.push(comb)
+                        }
+                    })
+
+                    return enemyArr2
+                },
+                playerPicks : function(playerOnePicks,playerTwoPicks,winCombs){
+
+                    const getPossWins = (value) => !playerOnePicks.includes(value) 
+                    const checkPossWins = (value) => playerTwoPicks.includes(value)
+
+                    
+                    
+                    const possArr = []
+                    const winningArr = []
+
+                    winCombs.forEach(comb => {
+                        if(comb.every(getPossWins)){
+                            possArr.push(comb)
+                        }
+                        
+                    })
+                    
+                    possArr.forEach(comb => {
+                        if(comb.some(checkPossWins)){
+                            
+                            winningArr.push(comb)
+                        }
+                    })
+
+                    return [winningArr,possArr]
+                },
+                dangerPick : function(enemyPicks,playerOnePicks,possPicks,dangerArr){
+
+                    enemyPicks.forEach(comb => {
+                        let count = 0
+                        playerOnePicks.forEach(item => {
+                            if(comb.includes(item)){
+                                ++count
+                                if(count ===2){
+                                    comb.forEach(item => {
+                                        if(possPicks.includes(item)){
+                                            dangerArr.push(item)
+                                        }
+                                    })
+                                }
+                            }
+                        })
+                    })
+
+                },
+                bestPick : function(winningArr,playerTwoPicks,possPicks,bestArr){
+                    winningArr.forEach(comb => {
+                        let count = 0
+                        playerTwoPicks.forEach((item,index) => {
+                            if(comb.includes(item)){
+                                ++count
+                                if(count ===2){
+                                    comb.forEach(item => {
+                                        if(possPicks.includes(item)){
+                                            bestArr.push(item)
+                                        }
+                                    })
+                                }
+                            }
+                        })
+                    })
+                },
+                goodPick : function(winningArr,possArr,possPicks){
+                    let array
+                    if(winningArr.length >0){
+                        array = [...new Set(winningArr.flat())]
+
+                    } else if(possArr.length >0 ){
+                        array = possArr 
+
+                    }else{
+                        array = [...possPicks]
+                    }
+
+                    
+                    const count = {}
+                    const arr = array.flat()
+
+                    arr.forEach(num => count[num] = (count[num] || 0) +1)
+
+                    let maxfreq = 0
+                    let numArr = []
+                    console.log(count)
+                    
+                    for(const num in count){
+                        
+                        
+                        if(count[num] > maxfreq){
+
+                            numArr = []
+                            maxfreq = count[num]
+                            numArr.push(+num)
+                        }else if(count[num] === maxfreq){
+                            numArr.push(+num)
+                        }
+
+                    }
+                    
+                        console.log(numArr)
+                        const rdm = Math.floor(Math.random()*numArr.length)
+
+                        return numArr[rdm]
+                },
+                necPick : function(bestArr,dangerArr){
+
+                    const arr = bestArr.length>0? bestArr : dangerArr
+
+                    const rdm = Math.floor(Math.random()*arr.length)
+
+                    return arr[rdm]
+                }
+
+
                
         
         },
         skyNet : function(){
             const player = ticTacToe.playerTurn()
-            pick = ticTacToe.aiLogic.possPicks()
+            pick = ticTacToe.aiLogic.possPicks(player)
             const move = ++ticTacToe.data.move
             this.data.playerTwo.picks.push(pick) 
             const field = (function (){
