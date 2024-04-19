@@ -24,6 +24,7 @@
             round:0,
             win:false,
             start:true,
+            aiFirstPick: true,
         },
         cacheDom : function(){
             this.fields = document.querySelectorAll('.field')
@@ -56,11 +57,15 @@
           
         },
         gameStart : function(){
-                ticTacToe.startBtn.textContent = 'Restart'
-                ticTacToe.data.listener =[]
-                ticTacToe.createPlayer(ticTacToe.playerNames)
-                ticTacToe.bind()
-                ticTacToe.showPlayerStats()  
+            const restart = ticTacToe.startBtn.textContent === 'Restart'
+            if(restart){
+                ticTacToe.reset(restart)
+            }
+            ticTacToe.startBtn.textContent = 'Restart'
+            ticTacToe.data.listener =[]
+            ticTacToe.createPlayer(ticTacToe.playerNames)
+            ticTacToe.bind()
+            ticTacToe.showPlayerStats()  
 
         },
         bind : function(){
@@ -69,7 +74,7 @@
 
                 
                 const event = function(){
-                    return ticTacToe.playerPick
+                    return ticTacToe.round
                 }()
 
                 field.setAttribute('num', index)
@@ -93,7 +98,7 @@
 
         },
 
-        playerPick : function(e){
+        round : function(e){
 
             const player = ticTacToe.playerTurn();
             const playerPicks = ticTacToe.data[player].picks
@@ -101,9 +106,10 @@
             let pick = +field.getAttribute('num')
             
             playerPicks.push(pick)
+            const move = ++ticTacToe.data.move
 
             const win = ticTacToe.checkWin(player)
-            if(ticTacToe.ai.checked && !win){
+            if(ticTacToe.ai.checked && !win && move <9){
                 
                 ticTacToe.skyNet()
             }
@@ -111,8 +117,7 @@
 
             ticTacToe.render(player,field)
             ticTacToe.removeListener(field)
-            const move = ++ticTacToe.data.move
-            console.log(move)
+          
             if(win || move === 9){
                 return ticTacToe.gameEnd(player,win)
             }
@@ -169,8 +174,10 @@
             
             
         },
-        reset : function (){
+        reset : function (restart){
             
+            const time = restart ? 100 : 1500
+
             setTimeout(function(){
                 
                 ticTacToe.data.playerTwo.picks = []
@@ -180,9 +187,10 @@
                 ticTacToe.data.move = 0
                 ticTacToe.data.win = false
                 ticTacToe.bind()
+                ticTacToe.data.aiFirstPick = true;
                 
                 ticTacToe.fields.forEach(field => field.textContent = '')
-            },1500)
+            },time)
             
         },
         render : function (player,field){
@@ -196,31 +204,173 @@
         aiLogic :{
 
                 possPicks : function(){
-                    const playerPicks = ticTacToe.data.playerOne.picks
-                    const aiPicks = ticTacToe.data.playerTwo.picks
-                    
+                    const playerOnePicks = ticTacToe.data.playerOne.picks
+                    const playerTwoPicks = ticTacToe.data.playerTwo.picks
+                    const winCombs = ticTacToe.data.winCombs
                     const possPicks = (function(){
                         
+                        //RAndom algo-----------------------
                         const arr = []
                         const nums = [0,1,2,3,4,5,6,7,8]
                         
+                        
                         nums.forEach(num => {
-                            if(!playerPicks.includes(num) && !aiPicks.includes(num)){
+                            if(!playerOnePicks.includes(num) && !playerTwoPicks.includes(num)){
                                 arr.push(num)
                             }
                         })
                         
                         return arr
                     })()
-                    const rdm = Math.floor(Math.random()*possPicks.length)
 
+                    
+                    
+
+                        
+                        
+                        //Enemy PICK----------------------------
+                        const enemyPossWins = (value) => !playerTwoPicks.includes(value)
+                        const enemyCheckWins = (value) => playerOnePicks.includes(value)
+                        const enemyArr = []
+                        const enemyArr2 = []
+                        
+
+                        winCombs.forEach(comb => {
+                            if(comb.every(enemyPossWins)){
+                                enemyArr.push(comb)
+                            }
+                        })
+                        
+                        enemyArr.forEach(comb => {
+                            if(comb.some(enemyCheckWins)){
+                                enemyArr2.push(comb)
+                            }
+                        })
+                        
+                        // OWN PICKS------------------------------
+                        
+                        const getPossWins = (value) => !playerOnePicks.includes(value) 
+                        const checkPossWins = (value) => playerTwoPicks.includes(value)
+
+                        
+                        
+                        const possArr = []
+                        const winningArr = []
+                        const dangerArr = []
+                        const bestArr = []
+                        winCombs.forEach(comb => {
+                            if(comb.every(getPossWins)){
+                                possArr.push(comb)
+                            }
+                            
+                        })
+                        
+                        possArr.forEach(comb => {
+                            if(comb.some(checkPossWins)){
+                                
+                                winningArr.push(comb)
+                            }
+                        })
+                        
+                        enemyArr2.forEach(comb => {
+                            let count = 0
+                            playerOnePicks.forEach((item,index) => {
+                                if(comb.includes(item)){
+                                    ++count
+                                    if(count ===2){
+                                        comb.forEach(item => {
+                                            if(possPicks.includes(item)){
+                                                dangerArr.push(item)
+                                            }
+                                        })
+                                    }
+                                }
+                            })
+                        })
+
+                        winningArr.forEach(comb => {
+                            let count = 0
+                            playerTwoPicks.forEach((item,index) => {
+                                if(comb.includes(item)){
+                                    ++count
+                                    if(count ===2){
+                                        comb.forEach(item => {
+                                            if(possPicks.includes(item)){
+                                                bestArr.push(item)
+                                            }
+                                        })
+                                    }
+                                }
+                            })
+                        })
+                        
+                        goodPick = (possArr,winningArr) =>  {
+
+                            let array
+                            if(winningArr.length >0 || possArr.length >0 ){
+                                array = winningArr.length !== 0 ? winningArr : possArr 
+
+                            }else{
+                                array = [...possPicks]
+                            }
+
+                            
+                            const count = {}
+                            const arr = array.flat()
+
+                            arr.forEach(num => count[num] = (count[num] || 0) +1)
+
+                            let freq = 0
+                            let maxfreq = 0
+                            
+                            for(const num in count){
+
+                                if(count[num] >= maxfreq){
+                                        console.log(num,possPicks)
+                                            freq = num
+                                            maxfreq = count[num]
+                                }
+                            }
+                            
+                                return +freq
+                            
+                        }
+
+
+                        // firstPick = () => {
+                        //     const arr = [0,2,4,6,8]
+                        //     const rdm = Math.floor(Math.random()*arr.length)
+
+                        //     return arr[rdm]
+                        // }
+
+
+                        necPick = (dangerArr,bestArr) => {
+
+                            const arr = bestArr.length>0? bestArr : dangerArr
+
+                            const rdm = Math.floor(Math.random()*arr.length)
+
+                            return arr[rdm]
+
+                        }
+
+
+                        
+                        
+                        let pick;
     
-                    return possPicks[rdm]
+                        if(bestArr.length >0 || dangerArr.length>0){
+                            pick = necPick(dangerArr,bestArr)
+                            
+                        }else{
+                            pick = goodPick(possArr,winningArr)
+                           
+                        }
+                    
+                    return pick
                 },
-                optionPicks: function(){
-
-
-                }
+               
         
         },
         skyNet : function(){
@@ -244,7 +394,7 @@
             },300)
             
             const win = ticTacToe.checkWin(player)
-            if(win || move >= 9){
+            if(win || move === 9){
                 return ticTacToe.gameEnd(player,win)
             }
         },
