@@ -395,7 +395,7 @@
                             pick = necPick(dangerArr,bestArr)
                             
                         }else{
-                            pick = this.goodPick(winningArr,possPicks)
+                            pick = goodPick(winningArr,possPicks)
                            
                         }
                     
@@ -523,7 +523,7 @@
 
                     let maxfreq = 0
                     let numArr = []
-                    console.log(count)
+                    
                     
                     for(const num in count){
                         
@@ -539,7 +539,7 @@
 
                     }
                     
-                        console.log(numArr)
+                        // console.log(numArr,count)
                         const rdm = Math.floor(Math.random()*numArr.length)
 
                         return numArr[rdm]
