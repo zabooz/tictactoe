@@ -1,0 +1,25 @@
+                    const count = {}
+
+                    array.forEach(num => count[num] = (count[num] || 0) +1)
+
+                    let maxfreq = 0
+                    let pickArr = []
+                    
+                    
+                    for(const num in count){
+                        
+                        
+                        if(count[num] > maxfreq){
+
+                            pickArr = []
+                            maxfreq = count[num]
+                            pickArr.push(+num)
+                        }else if(count[num] === maxfreq){
+                            pickArr.push(+num)
+                        }
+                        
+                    }
+                    
+                        const rdm = Math.floor(Math.random()*pickArr.length)
+                        console.log(array,pickArr)
+                        return pickArr[rdm]

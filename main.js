@@ -24,6 +24,7 @@
             round:0,
             win:false,
             start:true,
+            difficulty:0
         },
         cacheDom : function(){
             this.fields = document.querySelectorAll('.field')
@@ -35,6 +36,7 @@
             this.WinsTwo = document.querySelector('#playerTwoWins')
             this.NameOne = document.querySelector('#playerOneName')
             this.NameTwo = document.querySelector('#playerTwoName')
+            this.difficulty = document.querySelector('#diff')
 
         },
         createPlayer : function(playerNames){
@@ -65,7 +67,8 @@
             ticTacToe.data.listener =[]
             ticTacToe.createPlayer(ticTacToe.playerNames)
             ticTacToe.bindEvent()
-            ticTacToe.showPlayerStats()  
+            ticTacToe.showPlayerStats()
+            ticTacToe.data.difficulty = ticTacToe.difficulty.value  
 
         },
         bindEvent : function(){
@@ -81,6 +84,7 @@
                 field.addEventListener('click',event)
                 this.data.listener.push(event)
             })
+
 
         },
         showPlayerStats : function (){
@@ -231,39 +235,50 @@
             }
         },
         aiPick : function(player){
-
+            
             const enemy = player === 'playerOne' ? 'playerTwo' : 'playerOne'
-
+            
+            
             const playerPicks = ticTacToe.data[player].picks
             const enemyPicks = ticTacToe.data[enemy].picks
             const winCombs  = ticTacToe.data.winCombs
-
+            
             
             const possPicks = ticTacToe.aiLogic.possiblePicks(playerPicks,enemyPicks)
-            const playerCombs = ticTacToe.aiLogic.playerCombs(playerPicks,enemyPicks,winCombs)
-            const enemyCombs = ticTacToe.aiLogic.enemyCombs(playerPicks,enemyPicks,winCombs)
+            const [playerPoss,playerWin] = ticTacToe.aiLogic.playerCombs(playerPicks,enemyPicks,winCombs)
+            const [enemyPoss,enemyWin] = ticTacToe.aiLogic.enemyCombs(playerPicks,enemyPicks,winCombs)
             
             const dangerArr = []
             const bestArr   = []
-
-            ticTacToe.aiLogic.dangerPick(enemyCombs[1],enemyPicks,possPicks,dangerArr)
-            ticTacToe.aiLogic.bestPick(playerCombs[1],playerPicks,possPicks,bestArr)
-
-
-
+            ticTacToe.aiLogic.dangerPick(enemyWin,enemyPicks,possPicks,dangerArr)
+            ticTacToe.aiLogic.bestPick(playerWin,playerPicks,possPicks,bestArr)
+    
+            
             let pick;
-
-            if(bestArr.length > 0 || dangerArr.length > 0){
+            const difficulty = ticTacToe.data.difficulty
+            
+            if((bestArr.length > 0 || dangerArr.length > 0) && !(difficulty == 0)){
                 pick = ticTacToe.aiLogic.necPick(bestArr,dangerArr)
+
             }else{
-                pick = ticTacToe.aiLogic.goodPick(playerCombs[1],playerCombs[0],possPicks)
+                switch (difficulty){
+                    case '0' : pick = ticTacToe.aiLogic.randomPick(possPicks);break;
+                    case '1' : pick = ticTacToe.aiLogic.goodPick(playerWin,playerPoss,possPicks);break;
+                    case '2' : pick = ticTacToe.aiLogic.betterPick(playerWin,enemyWin,playerPoss,possPicks)   
+                }
             }
 
 
             return pick
         },
         aiLogic :{
-            
+            rdmGen : function(arr){
+                
+                const rdm =  Math.floor(Math.random()*arr.length)
+
+                return arr[rdm]
+
+            },
             possiblePicks : function(playerOnePicks,playerTwoPicks){
                 
                 const possPicks = (function(){
@@ -284,20 +299,20 @@
                 },
                 playerCombs : function(playerOnePicks,playerTwoPicks,winCombs){
 
-                    const playerPossWins = (value) => !playerTwoPicks.includes(value)
-                    const playerCheckWins = (value) => playerOnePicks.includes(value)
+                    const getPossWins = (value) => !playerTwoPicks.includes(value)
+                    const checkPossWins = (value) => playerOnePicks.includes(value)
                     const playerArr = []
                     const playerWinArr = []
                     
 
                     winCombs.forEach(comb => {
-                        if(comb.every(playerPossWins)){
+                        if(comb.every(getPossWins)){
                             playerArr.push(comb)
                         }
                     })
                     
                     playerArr.forEach(comb => {
-                        if(comb.some(playerCheckWins)){
+                        if(comb.some(checkPossWins)){
                             playerWinArr.push(comb)
                         }
                     })
@@ -311,24 +326,24 @@
 
                     
                     
-                    const possArr = []
-                    const winningArr = []
+                    const enemyArr = []
+                    const enemyWinArr = []
 
                     winCombs.forEach(comb => {
                         if(comb.every(getPossWins)){
-                            possArr.push(comb)
+                            enemyArr.push(comb)
                         }
                         
                     })
                     
-                    possArr.forEach(comb => {
+                    enemyArr.forEach(comb => {
                         if(comb.some(checkPossWins)){
                             
-                            winningArr.push(comb)
+                            enemyWinArr.push(comb)
                         }
                     })
 
-                    return [possArr,winningArr]
+                    return [enemyArr,enemyWinArr]
                 },
                 dangerPick : function(enemyPicks,playerOnePicks,possPicks,dangerArr){
 
@@ -366,6 +381,11 @@
                         })
                     })
                 },
+                randomPick: function(possPicks){
+                
+                    return this.rdmGen(possPicks)
+
+                },
                 goodPick : function(winningArr,possArr,possPicks){
 
                     let array = []
@@ -381,48 +401,76 @@
                             }
                             
                         })
-                        console.log(array,possPicks,possArr)
 
                     }else{
                         array = [...possPicks]
                     }
                     
-                    
-                    const count = {}
-                    const arr = array.flat()
+                    return ticTacToe.aiLogic.rdmGen(array)
 
-                    arr.forEach(num => count[num] = (count[num] || 0) +1)
-
-                    let maxfreq = 0
-                    let pickArr = []
-                    
-                    
-                    for(const num in count){
-                        
-                        
-                        if(count[num] > maxfreq){
-
-                            pickArr = []
-                            maxfreq = count[num]
-                            pickArr.push(+num)
-                        }else if(count[num] === maxfreq){
-                            pickArr.push(+num)
-                        }
-                        
-                    }
-                    
-                        const rdm = Math.floor(Math.random()*pickArr.length)
-
-                        return pickArr[rdm]
                     },
                 necPick : function(bestArr,dangerArr){
 
-                    const arr = bestArr.length>0? bestArr : dangerArr
+                    const array = bestArr.length > 0 ? bestArr : dangerArr
 
-                    const rdm = Math.floor(Math.random()*arr.length)
+                    return ticTacToe.aiLogic.rdmGen(array)
+                },
+                betterPick : function(winArr,enemyWin,possArr,possPicks){
+    
+                    let array = []
+                    const enemyArr  = ticTacToe.aiLogic.getFrequence(enemyWin,possPicks)
+                    const playerArr = ticTacToe.aiLogic.getFrequence(winArr,possPicks)
 
-                    return arr[rdm]
-                },  
+                    if(winArr.length > 0){
+                        array = playerArr.filter(num => enemyArr.includes(num))
+
+                        if(array.length === 0){
+                            array = playerArr
+                        }
+
+
+                    }else if(possArr.length > 0){
+                        arr = ticTacToe.aiLogic.getFrequence(possArr,possPicks)
+                        array = arr.filter(num => enemyArr.includes(num))
+
+                    }else{
+                        array = [...possPicks]
+                    }
+
+                    return ticTacToe.aiLogic.rdmGen(array)
+
+                },
+                getFrequence : function(arr,possPicks){
+
+                    const count = {}
+                    const numbers = arr.flat()
+
+
+                    numbers.forEach(num => count[num] = (count[num] || 0) + 1 )
+
+                    let maxfreq = 0;
+
+                    let pickArr =[]
+
+                    for(const num in count){
+                        
+
+                        if(possPicks.includes(+num)){
+                           
+                            if(count[num] > maxfreq){
+                                pickArr = []
+                                maxfreq = count[num]
+                                pickArr.push(+num)
+                            }else if(count[num] == maxfreq){
+                                pickArr.push(+num)
+                            }
+                        }
+
+
+                    }
+                    
+                    return pickArr
+                }, 
             },
         
         
