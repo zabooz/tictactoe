@@ -55,18 +55,20 @@
           
         },
         gameStart : function(){
+
             const restart = ticTacToe.startBtn.textContent === 'Restart'
+
             if(restart){
                 ticTacToe.reset(restart)
             }
             ticTacToe.startBtn.textContent = 'Restart'
             ticTacToe.data.listener =[]
             ticTacToe.createPlayer(ticTacToe.playerNames)
-            ticTacToe.bind()
+            ticTacToe.bindEvent()
             ticTacToe.showPlayerStats()  
 
         },
-        bind : function(){
+        bindEvent : function(){
 
             this.fields.forEach((field,index) => {
 
@@ -100,25 +102,27 @@
 
             const player = ticTacToe.playerTurn();
             const playerPicks = ticTacToe.data[player].picks
-            let field = e.target
-            let pick = +field.getAttribute('num')
+            const field = e.target
+            const pick = +field.getAttribute('num')
             
             playerPicks.push(pick)
             const move = ++ticTacToe.data.move
 
             const win = ticTacToe.checkWin(player)
-            if(ticTacToe.aiTwo.checked && !win && move <9){
-                
-                ticTacToe.skyNet()
-            }
-
-
             ticTacToe.render(player,field)
             ticTacToe.removeListener(field)
           
             if(win || move === 9){
                 return ticTacToe.gameEnd(player,win)
             }
+
+
+
+            if(ticTacToe.aiTwo.checked && !win && move <9){
+                ticTacToe.skyNet()
+            }
+
+
 
         },
         playerTurn : function(){
@@ -184,8 +188,7 @@
                 ticTacToe.data.turn = 'playerOne'
                 ticTacToe.data.move = 0
                 ticTacToe.data.win = false
-                ticTacToe.bind()
-                ticTacToe.data.aiFirstPick = true;
+                ticTacToe.bindEvent()
                 
                 ticTacToe.fields.forEach(field => field.textContent = '')
             },time)
@@ -199,14 +202,15 @@
             field.append(span)
             
         },
-        aiData:{
-            
-        },
+
         skyNet : function(){
             const player = ticTacToe.playerTurn()
+            
+            ++ticTacToe.data.move
+
             pick = ticTacToe.aiPick(player)
-            const move = ++ticTacToe.data.move
-            this.data.playerTwo.picks.push(pick) 
+            this.data[player].picks.push(pick)
+
             const field = (function (){
                 for(const field of ticTacToe.fields){
                     const num = +field.getAttribute('num')
@@ -216,15 +220,14 @@
                 }
             })()
             
-                setTimeout(function(){
-                    if(move <9)
-                    ticTacToe.removeListener(field)
+            setTimeout(function(){
+                ticTacToe.removeListener(field)
                 ticTacToe.render(player,field)
             },300)
             
-            const win = ticTacToe.checkWin(player)
-            if(win || move === 9){
-                return ticTacToe.gameEnd(player,win)
+    
+            if(ticTacToe.checkWin(player)){
+                return ticTacToe.gameEnd(player,true)
             }
         },
         aiPick : function(player){
@@ -235,12 +238,13 @@
             const enemyPicks = ticTacToe.data[enemy].picks
             const winCombs  = ticTacToe.data.winCombs
 
-            const dangerArr = []
-            const bestArr   = []
             
             const possPicks = ticTacToe.aiLogic.possiblePicks(playerPicks,enemyPicks)
             const playerCombs = ticTacToe.aiLogic.playerCombs(playerPicks,enemyPicks,winCombs)
             const enemyCombs = ticTacToe.aiLogic.enemyCombs(playerPicks,enemyPicks,winCombs)
+            
+            const dangerArr = []
+            const bestArr   = []
 
             ticTacToe.aiLogic.dangerPick(enemyCombs[1],enemyPicks,possPicks,dangerArr)
             ticTacToe.aiLogic.bestPick(playerCombs[1],playerPicks,possPicks,bestArr)
@@ -418,17 +422,7 @@
                     const rdm = Math.floor(Math.random()*arr.length)
 
                     return arr[rdm]
-                },
-                betterPick : function(arr){
-
-
-
-
-                }
-
-
-                
-                
+                },  
             },
         
         
