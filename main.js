@@ -252,7 +252,7 @@
             const bestArr   = []
             ticTacToe.aiLogic.dangerPick(enemyWin,enemyPicks,possPicks,dangerArr)
             ticTacToe.aiLogic.bestPick(playerWin,playerPicks,possPicks,bestArr)
-    
+            
             
             let pick;
             const difficulty = ticTacToe.data.difficulty
@@ -423,11 +423,12 @@
 
                     if(winArr.length > 0){
                         array = playerArr.filter(num => enemyArr.includes(num))
-
+                        if(array.length === 2 && possPicks.includes(4)){
+                            array = playerArr.filter(num => !enemyArr.includes(num))
+                        }
                         if(array.length === 0){
                             array = playerArr
                         }
-
 
                     }else if(possArr.length > 0){
                         arr = ticTacToe.aiLogic.getFrequence(possArr,possPicks)
@@ -436,8 +437,13 @@
                     }else{
                         array = [...possPicks]
                     }
+                    
 
-                    return ticTacToe.aiLogic.rdmGen(array)
+                    const pick = ticTacToe.aiLogic.rdmGen(array)
+
+                
+
+                    return pick
 
                 },
                 getFrequence : function(arr,possPicks){
