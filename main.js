@@ -162,18 +162,18 @@
                 }
             }
 
-            
-            
-            
-            
             if(playMode !== 'humanOnly' && !win && move <9){
-                    ticTacToe.skyNet(playMode,move)
+                    const time = playMode === 'aiVsAi' ? 500 : 300
+                    setTimeout(function(){
+                        ticTacToe.skyNet(playMode,move)
+                    },time)
             }
 
 
 
         },
         playerTurn : function(){
+            
             ++ticTacToe.data.move
             const player = this.data.turn
             this.data.turn = this.data.turn === 'playerOne' ?
@@ -283,7 +283,8 @@
         modeAiVsAi :function(move,player,field,win){
 
             if(move <=9){
-                    ticTacToe.render(player,field)
+                ticTacToe.render(player,field)
+
             }
 
             if(win || move === 9){
@@ -297,9 +298,9 @@
             ticTacToe.removeListener(field)
 
             if(move <9){
-                    ticTacToe.render(player,field)
+                ticTacToe.render(player,field)
             }
-
+            
             if(win){
                 ticTacToe.gameEnd(player,win)
             }
