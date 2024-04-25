@@ -16,8 +16,14 @@
         <input type="text" value="playerOne" id="playerOne" class="playerName" name="player1">
         <label for="playerTwo">Player 2 name:</label>
         <input type="text" value="playerTwo" id="playerTwo" name="player2" class="playerName">
-        <label for="ai2">play against ai</label>
-        <input type="checkbox" id="ai2" name="ai2">
+        <fieldset>
+            <label for="player">Player VS Player</label>
+            <input type="radio" id="humanOnly" name="mode" checked class="mode">
+            <label for="ai2">Player vs AI</label>
+            <input type="radio" id="humanVsAi" name="mode" class="mode">
+            <label for="vs">AI VS AI</label>
+            <input type="radio" name="mode" id="aiVsAi" class="mode">
+        </fieldset>
         <label for="diff">Difficulty</label>
         <input type="range" id="diff" name="diff" value="0" min="0" max="2" step="1">
         <button id="start">Start</button>

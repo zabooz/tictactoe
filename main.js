@@ -4,9 +4,9 @@
     
         init: function(){
             this.cacheDom()
+            this.setFieldIndex()
+            this.setMode()
             this.startBtn.addEventListener('click', this.gameStart)
-            this.aiTwo.addEventListener('click', this.setAI)
-            
         },
         data : {
             winCombs : [
@@ -21,14 +21,15 @@
             ],
             turn: 'playerOne',
             move: 0,
-            round:0,
             win:false,
             start:true,
-            difficulty:0
+            difficulty:0,
+            playMode: 'humanOnly'
         },
         cacheDom : function(){
             this.fields = document.querySelectorAll('.field')
             this.playerNames = document.querySelectorAll('.playerName')
+            this.modi = document.querySelectorAll('.mode')
             this.aiTwo = document.querySelector('#ai2')
             this.startBtn = document.querySelector('#start')
             this.playerInfo = document.querySelectorAll('.playerInfo')
@@ -41,6 +42,7 @@
         },
         createPlayer : function(playerNames){
             playerNames.forEach(player =>{
+                
                 const name = player.value
                 const marker = player.id === 'playerOne' ? 'X' : 'O'
                 const picks = []
@@ -49,46 +51,80 @@
             })
     
         },
-        setAI: function(){
-           
-                const checked = ticTacToe.aiTwo.checked
-                let setName = document.querySelector('#playerTwo')
-                checked === true ? setName.value = 'SkyNet' : setName.value = 'playerTwo'
-          
-        },
+        setMode: function(){
+
+                ticTacToe.modi.forEach(mode => {
+
+                    mode.addEventListener('click', (e) => {
+                        
+                        const playMode = e.target.id
+                        
+                        ticTacToe.playerNames.forEach(input => {
+                            input.value = ''
+
+                            if(playMode === 'humanVsAi'){
+                               input.value = input.id === 'playerOne' ? 
+                                                          'playerOne' : 'SkyNet'
+                            }else if(playMode === 'aiVsAi'){
+                                input.value = input.id === 'playerOne' ? 
+                                                           'Hal 9000'  : 'SkyNet'
+                            }else{
+                                input.value = input.id === 'playerOne' ? 
+                                                           'playerOne'  : 'playerTwo'
+                            }
+                        })
+                        ticTacToe.data.playMode = playMode
+                    })
+                })
+
+            },
         gameStart : function(){
-
+            
             const restart = ticTacToe.startBtn.textContent === 'Restart'
-
             if(restart){
                 ticTacToe.reset(restart)
             }
-            ticTacToe.startBtn.textContent = 'Restart'
-            ticTacToe.data.listener =[]
+            
+            const playMode = ticTacToe.data.playMode
+            
+            
             ticTacToe.createPlayer(ticTacToe.playerNames)
-            ticTacToe.bindEvent()
-            ticTacToe.showPlayerStats()
+            ticTacToe.showPlayerStats() 
             ticTacToe.data.difficulty = ticTacToe.difficulty.value  
+            
+            
+            if(playMode === 'humanVsAi' || playMode === 'humanOnly'){
+                ticTacToe.data.listener =[]
+                ticTacToe.bindEvent()
+            }else{
+                ticTacToe.round()
+            }
+            
+            ticTacToe.startBtn.textContent = 'Restart'
+
 
         },
         bindEvent : function(){
 
             this.fields.forEach((field,index) => {
 
-                
                 const event = function(){
                     return ticTacToe.round
                 }()
-
-                field.setAttribute('num', index)
                 field.addEventListener('click',event)
                 this.data.listener.push(event)
             })
+            
+            
+        },
+        setFieldIndex : function(){
+            this.fields.forEach((field,index) => {
+                
+                field.setAttribute('num', index)
 
-
+            } )
         },
         showPlayerStats : function (){
-
             ticTacToe.NameOne.textContent = ticTacToe.data.playerOne.name
             ticTacToe.NameTwo.textContent = ticTacToe.data.playerTwo.name
             ticTacToe.WinsTwo.textContent = 'Wins: 0';
@@ -96,41 +132,49 @@
 
         },
         removeListener: function(field){
-
+            
             const index = field.getAttribute('num')
             field.removeEventListener('click', this.data.listener[index])
-
-        },
-
-        round : function(e){
-
-            const player = ticTacToe.playerTurn();
-            const playerPicks = ticTacToe.data[player].picks
-            const field = e.target
-            const pick = +field.getAttribute('num')
             
-            playerPicks.push(pick)
-            const move = ++ticTacToe.data.move
-
-            const win = ticTacToe.checkWin(player)
-            ticTacToe.render(player,field)
-            ticTacToe.removeListener(field)
-          
-            if(win || move === 9){
-                return ticTacToe.gameEnd(player,win)
+        },
+        
+        round : function(e){
+            const playMode = ticTacToe.data.playMode
+            let win = ticTacToe.data.win
+            let move = 0
+            
+            
+            
+            if(playMode === 'humanVsAi' || playMode === 'humanOnly'){
+                
+                const player = ticTacToe.playerTurn();
+                move = ticTacToe.data.move
+                const field = (e.target || null)
+                const pick = +field.getAttribute('num')
+                const playerPicks = ticTacToe.data[player].picks
+                playerPicks.push(pick)
+                win = ticTacToe.checkWin(player)
+                ticTacToe.render(player,field)
+                ticTacToe.removeListener(field)
+                
+                if(win || move === 9){
+                    return ticTacToe.gameEnd(player,win)
+                }
             }
 
-
-
-            if(ticTacToe.aiTwo.checked && !win && move <9){
-                ticTacToe.skyNet()
+            
+            
+            
+            
+            if(playMode !== 'humanOnly' && !win && move <9){
+                    ticTacToe.skyNet(playMode,move)
             }
 
 
 
         },
         playerTurn : function(){
-            
+            ++ticTacToe.data.move
             const player = this.data.turn
             this.data.turn = this.data.turn === 'playerOne' ?
             'playerTwo' : 'playerOne'
@@ -167,8 +211,8 @@
             
         },
         gameEnd : function(player,win){
-
-            ++this.data.round
+            
+            
             if(win){
                 
                 this.data.win = false;
@@ -192,8 +236,9 @@
                 ticTacToe.data.turn = 'playerOne'
                 ticTacToe.data.move = 0
                 ticTacToe.data.win = false
+                ticTacToe.data.start = true;
                 ticTacToe.bindEvent()
-                
+                ticTacToe.setFieldIndex()
                 ticTacToe.fields.forEach(field => field.textContent = '')
             },time)
             
@@ -207,36 +252,64 @@
             
         },
 
-        skyNet : function(){
+        skyNet : function(playMode,move){
             const player = ticTacToe.playerTurn()
             
-            ++ticTacToe.data.move
-
+            move = ticTacToe.data.move
+            
             pick = ticTacToe.aiPick(player)
             this.data[player].picks.push(pick)
-
             const field = (function (){
                 for(const field of ticTacToe.fields){
                     const num = +field.getAttribute('num')
+                    
                     if(num === pick){
                         return field
                     } 
                 }
             })()
+
             
-            setTimeout(function(){
-                ticTacToe.removeListener(field)
-                ticTacToe.render(player,field)
-            },300)
+            const win = ticTacToe.checkWin(player)
             
-    
-            if(ticTacToe.checkWin(player)){
-                return ticTacToe.gameEnd(player,true)
+            if(playMode === 'humanVsAi'){
+                ticTacToe.modeHumanVsAi(move,player,field,win)
+
+            }else{
+                ticTacToe.modeAiVsAi(move,player,field,win)
             }
+
+        },
+        modeAiVsAi :function(move,player,field,win){
+
+            if(move <=9){
+                    ticTacToe.render(player,field)
+            }
+
+            if(win || move === 9){
+                ticTacToe.gameEnd(player,win)
+            }else{
+                ticTacToe.round() 
+            }
+
+        },
+        modeHumanVsAi : function(move,player,field,win){
+            ticTacToe.removeListener(field)
+
+            if(move <9){
+                    ticTacToe.render(player,field)
+            }
+
+            if(win){
+                ticTacToe.gameEnd(player,win)
+            }
+
+
         },
         aiPick : function(player){
             
             const enemy = player === 'playerOne' ? 'playerTwo' : 'playerOne'
+            console.log(player,enemy)
             
             
             const playerPicks = ticTacToe.data[player].picks
@@ -247,7 +320,6 @@
             const possPicks = ticTacToe.aiLogic.possiblePicks(playerPicks,enemyPicks)
             const [playerPoss,playerWin] = ticTacToe.aiLogic.playerCombs(playerPicks,enemyPicks,winCombs)
             const [enemyPoss,enemyWin] = ticTacToe.aiLogic.enemyCombs(playerPicks,enemyPicks,winCombs)
-            
             const dangerArr = []
             const bestArr   = []
             ticTacToe.aiLogic.dangerPick(enemyWin,enemyPicks,possPicks,dangerArr)
@@ -257,9 +329,13 @@
             let pick;
             const difficulty = ticTacToe.data.difficulty
             
-            if((bestArr.length > 0 || dangerArr.length > 0) && !(difficulty == 0)){
-                pick = ticTacToe.aiLogic.necPick(bestArr,dangerArr)
+            if(ticTacToe.data.start === true && difficulty === '2'){
+                ticTacToe.data.start = false;
+                pick = Math.floor(Math.random()*5)
 
+            }else if((bestArr.length > 0 || dangerArr.length > 0) && !(difficulty == 0)){
+                pick = ticTacToe.aiLogic.necPick(bestArr,dangerArr)
+                
             }else{
                 switch (difficulty){
                     case '0' : pick = ticTacToe.aiLogic.randomPick(possPicks);break;
@@ -267,9 +343,8 @@
                     case '2' : pick = ticTacToe.aiLogic.betterPick(playerWin,enemyWin,playerPoss,possPicks)   
                 }
             }
-
-
-            return pick
+                
+                return pick
         },
         aiLogic :{
             rdmGen : function(arr){
@@ -420,10 +495,14 @@
                     let array = []
                     const enemyArr  = ticTacToe.aiLogic.getFrequence(enemyWin,possPicks)
                     const playerArr = ticTacToe.aiLogic.getFrequence(winArr,possPicks)
+                    const middleMarker = ticTacToe.data.playerOne.picks.includes(4) ?
+                                         'enemy' : 'player'
+
+                    const checkMiddle = middleMarker === 'player'
 
                     if(winArr.length > 0){
                         array = playerArr.filter(num => enemyArr.includes(num))
-                        if(array.length === 2 && possPicks.includes(4)){
+                        if(array.length === 2 && checkMiddle){
                             array = playerArr.filter(num => !enemyArr.includes(num))
                         }
                         if(array.length === 0){
@@ -441,7 +520,7 @@
 
                     const pick = ticTacToe.aiLogic.rdmGen(array)
 
-                
+                    
 
                     return pick
 
