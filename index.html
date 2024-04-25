@@ -9,6 +9,15 @@
 </head>
 <body>
     <header>
+        <div class="winstat">
+            <span>Blue</span>
+            <div class="bar">
+                <div class="blueBar statBar"></div>
+                <div class="drawBar statBar"></div>
+                <div class="greenBar statBar"></div>
+            </div>
+            <span>Green</span>
+        </div>
         <h1>Tic Tac Toe</h1>
     </header>
     <div class="side">
@@ -26,6 +35,8 @@
         </fieldset>
         <label for="diff">Difficulty</label>
         <input type="range" id="diff" name="diff" value="0" min="0" max="2" step="1">
+        <label for="endless">endless ai battle</label>
+        <input type="checkbox" id="endless">
         <button id="start">Start</button>
     </div>
     <main>

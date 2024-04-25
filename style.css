@@ -2,7 +2,7 @@
     box-sizing: border-box;
     padding: 0;
     margin: 0;
-    color: white;
+
 }
 :root{
     --primeColor: rgb(87, 92, 87);
@@ -18,18 +18,72 @@ header{
     grid-area: 1/1/1/3;
     background-color: var(--primeColor) ;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     font-size: 3rem;
 }
+header h1{
+    margin-left: 15rem;
+    color: rgb(62, 192, 71);
+}
+h2,h1{
+    color: rgb(62, 192, 71);
+}
+.winstat{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.bar{
+    width: 15rem;
+    border: 1px solid #000;
+    height: 1rem;
+    margin: 0 1rem;
+    display: flex;
+}
+.blueBar{
+    background-color: rgb(41, 41, 137);
+    width: 50%;
+    height: 100%;
+}
+.greenBar{
+    background-color: rgb(27, 182, 117);
+    width: 50%;
+    height: 100%;
+}
+.drawBar{
+    height: 100%;
+    background-color: gainsboro;
+}
+.statBar{
+    font-size: 1rem;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .side{
     grid-area: 2/1/3/2;
     background-color: var(--secondColor);
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 3rem;
-
+    padding: 3rem;
+    gap: .3rem;
+    color: rgb(62, 192, 71);
+    font-weight: 900;
+}
+.side button{
+    color: black;
+    margin-top: 1rem;
+    border-radius: .5rem;
+    width: 5rem;
+    padding: .2rem;
+}
+.side input{
+    color: rgb(62, 192, 71);
+    padding: .3rem;
 }
 main{
     background-color: var(--primeColor);
@@ -40,7 +94,6 @@ main{
 }
 .playField{
     background-color: var(--sedondColor);
-    color: black;
     width: 40rem;
     height: 40rem;
     display: grid;
@@ -56,11 +109,17 @@ main{
     display: flex;
     justify-content: center;
     align-items: center;
-    color: black;
 }
 .field span{
     font-size: 9rem;
-    color: black;
+    animation: fadeIn .3s forwards
+}
+
+.XMarker{
+    color: rgb(41, 41, 137);
+}
+.OMarker{
+    color: rgb(27, 182, 117);
 }
 .playerInfo{
     display: flex;
@@ -69,4 +128,28 @@ main{
     align-items: center;
     gap: 2rem;
     margin: 0 3rem;
+}
+#playerOneName,
+#playerOneWins{
+    color: rgb(41, 41, 137);
+}
+#playerTwoName,
+#playerTwoWins{
+    color: rgb(27, 182, 117);
+}
+fieldset{
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+}
+fieldset input{
+    margin: .3rem 0;
+}
+
+@keyframes fadeIn{
+    0%{opacity: 0;}
+    100%{opacity: 1;}
 }

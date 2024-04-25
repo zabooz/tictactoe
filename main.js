@@ -21,6 +21,7 @@
             ],
             turn: 'playerOne',
             move: 0,
+            round:0,
             win:false,
             start:true,
             difficulty:0,
@@ -38,6 +39,11 @@
             this.NameOne = document.querySelector('#playerOneName')
             this.NameTwo = document.querySelector('#playerTwoName')
             this.difficulty = document.querySelector('#diff')
+            this.endless = document.querySelector('#endless')
+            this.blueBar = document.querySelector('.blueBar')
+            this.greenBar = document.querySelector('.greenBar')
+            this.bar = document.querySelector('.bar')
+            this.drawBar=document.querySelector('.drawBar')
 
         },
         createPlayer : function(playerNames){
@@ -82,7 +88,8 @@
             
             const restart = ticTacToe.startBtn.textContent === 'Restart'
             if(restart){
-                ticTacToe.reset(restart)
+                ticTacToe.reset()
+                ticTacToe.data.round = 0
             }
             
             const playMode = ticTacToe.data.playMode
@@ -173,7 +180,7 @@
 
         },
         playerTurn : function(){
-            
+
             ++ticTacToe.data.move
             const player = this.data.turn
             this.data.turn = this.data.turn === 'playerOne' ?
@@ -185,11 +192,13 @@
             
             const playerPicks = this.data[player].picks
             const winCombs = this.data.winCombs
-            
+
+
             if(playerPicks.length >= 3){
                 winCombs.forEach(comb => {
                     if(comb.every(num => playerPicks.includes(num))){
                         this.data.win = true
+                        winningComb = comb
                     }
                 })
             }
@@ -208,10 +217,51 @@
                     item.childNodes[3].textContent = `Wins: ${this.data[player].points}`
                 }
             })
-            
+
+        },
+        barStats : function(){
+            const blueBar = ticTacToe.blueBar
+            const greenBar = ticTacToe.greenBar
+            const drawBar = ticTacToe.drawBar
+            const bar = ticTacToe.bar
+            const playerOnePoints = ticTacToe.data.playerOne.points
+            const playerTwoPoints = ticTacToe.data.playerTwo.points
+            const rounds = ticTacToe.data.round
+            const draws = rounds -playerOnePoints -playerTwoPoints
+            const sum = playerOnePoints+playerTwoPoints+ draws
+            const width = bar.clientWidth
+            const part = width/sum
+            console.log(rounds)
+            const points = [playerOnePoints,playerTwoPoints,draws]
+            const bars = [blueBar,greenBar,drawBar]
+
+            bars.forEach((bar,index) => {
+                console.log(draws)
+                if(index !== 2){
+                    const span = document.createElement('span')
+
+                    const math = Math.round(100/(playerOnePoints+playerTwoPoints)) * points[index] +'%'
+
+
+                    span.textContent = math
+                    bar.textContent = ''
+                    bar.append(span)
+                }
+                
+
+
+                bar.style.width = part*points[index] + 'px' 
+
+            })
+
+
+            // blueBar.style.width = part*playerOnePoints + 'px'
+            // greenBar.style.width = part*playerTwoPoints + 'px'
+            // drawBar.style.width = part*draws +'px'
         },
         gameEnd : function(player,win){
             
+            ++this.data.round
             
             if(win){
                 
@@ -220,33 +270,46 @@
             }else{
                 console.log('its a draw')
             }
-            this.reset()
+            this.barStats(win)
+
+            setTimeout(this.reset,500)
+
+            
             
             
         },
-        reset : function (restart){
+        reset : function (){
             
-            const time = restart ? 100 : 1500
 
-            setTimeout(function(){
-                
-                ticTacToe.data.playerTwo.picks = []
-                ticTacToe.data.playerOne.picks = []
-                ticTacToe.data.listener =[]
-                ticTacToe.data.turn = 'playerOne'
-                ticTacToe.data.move = 0
-                ticTacToe.data.win = false
-                ticTacToe.data.start = true;
-                ticTacToe.bindEvent()
-                ticTacToe.setFieldIndex()
-                ticTacToe.fields.forEach(field => field.textContent = '')
-            },time)
+                const endlessMode = ticTacToe.endless.checked
+
+
+                    ticTacToe.data.playerTwo.picks = []
+                    ticTacToe.data.playerOne.picks = []
+                    ticTacToe.data.listener =[]
+                    ticTacToe.data.turn = 'playerOne'
+                    ticTacToe.data.move = 0
+                    
+                    ticTacToe.data.win = false
+                    ticTacToe.data.start = true;
+                    ticTacToe.bindEvent()
+                    ticTacToe.setFieldIndex()
+                    ticTacToe.fields.forEach(field => field.textContent = '')
+    
+                    if(endlessMode){
+                        ticTacToe.round()
+                    }
+
+
             
         },
         render : function (player,field){
             
             const marker = this.data[player].marker
             const span = document.createElement('span')
+
+            const cName = `${marker}Marker`
+            span.classList.add(cName)
             span.textContent = marker
             field.append(span)
             
@@ -284,7 +347,6 @@
 
             if(move <=9){
                 ticTacToe.render(player,field)
-
             }
 
             if(win || move === 9){
@@ -332,7 +394,7 @@
             
             if(ticTacToe.data.start === true && difficulty === '2'){
                 ticTacToe.data.start = false;
-                pick = Math.floor(Math.random()*5)
+                pick = Math.floor(Math.random()*9)
 
             }else if((bestArr.length > 0 || dangerArr.length > 0) && !(difficulty == 0)){
                 pick = ticTacToe.aiLogic.necPick(bestArr,dangerArr)
@@ -344,7 +406,6 @@
                     case '2' : pick = ticTacToe.aiLogic.betterPick(playerWin,enemyWin,playerPoss,possPicks)   
                 }
             }
-                
                 return pick
         },
         aiLogic :{
