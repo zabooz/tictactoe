@@ -24,7 +24,8 @@
             round:0,
             win:false,
             start:true,
-            difficulty:0,
+            difficultyAi2:0,
+            difficultyAi1:0,
             playMode: 'humanOnly'
         },
         cacheDom : function(){
@@ -38,7 +39,8 @@
             this.WinsTwo = document.querySelector('#playerTwoWins')
             this.NameOne = document.querySelector('#playerOneName')
             this.NameTwo = document.querySelector('#playerTwoName')
-            this.difficulty = document.querySelector('#diff')
+            this.difficultyAi2 = document.querySelector('#diffAi2')
+            this.difficultyAi1 = document.querySelector('#diffAi1')
             this.endless = document.querySelector('#endless')
             this.blueBar = document.querySelector('.blueBar')
             this.greenBar = document.querySelector('.greenBar')
@@ -46,6 +48,8 @@
             this.drawBar=document.querySelector('.drawBar')
 
         },
+
+        //erstellt Spieler Object
         createPlayer : function(playerNames){
             playerNames.forEach(player =>{
                 
@@ -57,7 +61,10 @@
             })
     
         },
+        //legt den spielModus fest
         setMode: function(){
+
+
 
                 ticTacToe.modi.forEach(mode => {
 
@@ -65,6 +72,7 @@
                         
                         const playMode = e.target.id
                         
+                        //legt den SpielerNamen fest
                         ticTacToe.playerNames.forEach(input => {
                             input.value = ''
 
@@ -84,9 +92,12 @@
                 })
 
             },
+
+
         gameStart : function(){
             
             const restart = ticTacToe.startBtn.textContent === 'Restart'
+
             if(restart){
                 ticTacToe.reset()
                 ticTacToe.data.round = 0
@@ -96,9 +107,11 @@
             
             
             ticTacToe.createPlayer(ticTacToe.playerNames)
-            ticTacToe.showPlayerStats() 
-            ticTacToe.data.difficulty = ticTacToe.difficulty.value  
-            
+            ticTacToe.displayPlayerStats()
+
+
+            ticTacToe.data.difficultyAi2 = ticTacToe.difficultyAi2.value  
+            ticTacToe.data.difficultyAi1 = ticTacToe.difficultyAi1.value
             
             if(playMode === 'humanVsAi' || playMode === 'humanOnly'){
                 ticTacToe.data.listener =[]
@@ -111,19 +124,27 @@
 
 
         },
+
+        //bindet das event ans jeweilige Feld
         bindEvent : function(){
 
             this.fields.forEach((field,index) => {
 
+
+                //ertellt event und sammelt es, um es später wieder
+                //entfernen zu können
                 const event = function(){
                     return ticTacToe.round
                 }()
-                field.addEventListener('click',event)
                 this.data.listener.push(event)
+
+                field.addEventListener('click',event)
             })
             
             
         },
+
+        //fügt den Feldern einen index hinzu
         setFieldIndex : function(){
             this.fields.forEach((field,index) => {
                 
@@ -131,34 +152,38 @@
 
             } )
         },
-        showPlayerStats : function (){
+
+        displayPlayerStats : function (){
             ticTacToe.NameOne.textContent = ticTacToe.data.playerOne.name
             ticTacToe.NameTwo.textContent = ticTacToe.data.playerTwo.name
             ticTacToe.WinsTwo.textContent = 'Wins: 0';
             ticTacToe.WinsOne.textContent = 'Wins: 0';
 
         },
+        //entfernt listener
         removeListener: function(field){
             
             const index = field.getAttribute('num')
             field.removeEventListener('click', this.data.listener[index])
             
         },
-        
+        //startet eine Runde
         round : function(e){
+
             const playMode = ticTacToe.data.playMode
             let win = ticTacToe.data.win
             let move = 0
             
             
-            
+            // wenn mindestens ein User spielt.
             if(playMode === 'humanVsAi' || playMode === 'humanOnly'){
-                
                 const player = ticTacToe.playerTurn();
-                move = ticTacToe.data.move
                 const field = (e.target || null)
                 const pick = +field.getAttribute('num')
                 const playerPicks = ticTacToe.data[player].picks
+                
+                move = ticTacToe.data.move
+                ticTacToe.data.start = false;
                 playerPicks.push(pick)
                 win = ticTacToe.checkWin(player)
                 ticTacToe.render(player,field)
@@ -169,16 +194,22 @@
                 }
             }
 
+
+            // wenn midnestens ein Ki spielt
             if(playMode !== 'humanOnly' && !win && move <9){
+
                     const time = playMode === 'aiVsAi' ? 500 : 300
+
                     setTimeout(function(){
-                        ticTacToe.skyNet(playMode,move)
+                        ticTacToe.ticTacToeBot(playMode,move)
                     },time)
             }
 
 
 
         },
+        //gibt den aktuellen Spieler aus und wechselt 
+        //den auf den neuen Spieler
         playerTurn : function(){
 
             ++ticTacToe.data.move
@@ -193,7 +224,8 @@
             const playerPicks = this.data[player].picks
             const winCombs = this.data.winCombs
 
-
+            //überprüft ob der Spieler eine GewinnCombination erreicht hat
+            //Bingo!
             if(playerPicks.length >= 3){
                 winCombs.forEach(comb => {
                     if(comb.every(num => playerPicks.includes(num))){
@@ -203,6 +235,7 @@
                 })
             }
             
+            //wenn gewonnen , werden die Punkte aktualisiert
             if(this.data.win){
                 this.updatePoints(player)
             }
@@ -211,6 +244,7 @@
         },
         updatePoints : function(player){
             
+            //aktualisiert und zeigt Punktestand an
             ++this.data[player].points
             this.playerInfo.forEach(item => {
                 if(item.classList.contains(player)){
@@ -219,10 +253,12 @@
             })
 
         },
+
+        //balken um Verhältnis Von Siegen und Unentschieden anzuzeigen
+
         barStats : function(){
-            const blueBar = ticTacToe.blueBar
-            const greenBar = ticTacToe.greenBar
-            const drawBar = ticTacToe.drawBar
+
+
             const bar = ticTacToe.bar
             const playerOnePoints = ticTacToe.data.playerOne.points
             const playerTwoPoints = ticTacToe.data.playerTwo.points
@@ -231,34 +267,19 @@
             const sum = playerOnePoints+playerTwoPoints+ draws
             const width = bar.clientWidth
             const part = width/sum
-            console.log(rounds)
             const points = [playerOnePoints,playerTwoPoints,draws]
             const bars = [blueBar,greenBar,drawBar]
 
             bars.forEach((bar,index) => {
-                console.log(draws)
-                if(index !== 2){
-                    const span = document.createElement('span')
-
-                    const math = Math.round(100/(playerOnePoints+playerTwoPoints)) * points[index] +'%'
-
-
-                    span.textContent = math
-                    bar.textContent = ''
-                    bar.append(span)
-                }
-                
-
 
                 bar.style.width = part*points[index] + 'px' 
-
             })
 
-
-            // blueBar.style.width = part*playerOnePoints + 'px'
-            // greenBar.style.width = part*playerTwoPoints + 'px'
-            // drawBar.style.width = part*draws +'px'
         },
+
+
+        //wenn runde endet wird der statsBalken akualisiert
+        //und das spiel reset
         gameEnd : function(player,win){
             
             ++this.data.round
@@ -275,9 +296,9 @@
             setTimeout(this.reset,500)
 
             
-            
-            
         },
+
+        //setzt SpielDaten nach jeder runde zurück 
         reset : function (){
             
 
@@ -295,7 +316,9 @@
                     ticTacToe.bindEvent()
                     ticTacToe.setFieldIndex()
                     ticTacToe.fields.forEach(field => field.textContent = '')
-    
+
+
+                    //startet einen neue runde im AIVsAi modus + endless mode
                     if(endlessMode){
                         ticTacToe.round()
                     }
@@ -303,6 +326,8 @@
 
             
         },
+
+        //rendert die züge der Spieler
         render : function (player,field){
             
             const marker = this.data[player].marker
@@ -314,14 +339,20 @@
             field.append(span)
             
         },
+        
+        ticTacToeBot : function(playMode,move){
 
-        skyNet : function(playMode,move){
             const player = ticTacToe.playerTurn()
             
             move = ticTacToe.data.move
             
+
+            
+
             pick = ticTacToe.aiPick(player)
             this.data[player].picks.push(pick)
+
+
             const field = (function (){
                 for(const field of ticTacToe.fields){
                     const num = +field.getAttribute('num')
@@ -372,7 +403,6 @@
         aiPick : function(player){
             
             const enemy = player === 'playerOne' ? 'playerTwo' : 'playerOne'
-            console.log(player,enemy)
             
             
             const playerPicks = ticTacToe.data[player].picks
@@ -388,15 +418,11 @@
             ticTacToe.aiLogic.dangerPick(enemyWin,enemyPicks,possPicks,dangerArr)
             ticTacToe.aiLogic.bestPick(playerWin,playerPicks,possPicks,bestArr)
             
-            
             let pick;
-            const difficulty = ticTacToe.data.difficulty
-            
-            if(ticTacToe.data.start === true && difficulty === '2'){
-                ticTacToe.data.start = false;
-                pick = Math.floor(Math.random()*9)
-
-            }else if((bestArr.length > 0 || dangerArr.length > 0) && !(difficulty == 0)){
+            const difficulty =   player ==='playerOne' ? ticTacToe.data.difficultyAi1
+                                                       : ticTacToe.data.difficultyAi2
+            console.log(playerWin,enemyWin,playerPoss,possPicks)
+             if((bestArr.length > 0 || dangerArr.length > 0) && !(difficulty == 0)){
                 pick = ticTacToe.aiLogic.necPick(bestArr,dangerArr)
                 
             }else{
@@ -439,7 +465,7 @@
                     const getPossWins = (value) => !playerTwoPicks.includes(value)
                     const checkPossWins = (value) => playerOnePicks.includes(value)
                     const playerArr = []
-                    const playerWinArr = []
+                    let playerWinArr = []
                     
 
                     winCombs.forEach(comb => {
@@ -454,6 +480,11 @@
                         }
                     })
                     
+                    if(playerWinArr.length === 0){
+                        playerWinArr = [...playerArr]
+                    }
+
+
                     return [playerArr,playerWinArr]
                 },
                 enemyCombs : function(playerOnePicks,playerTwoPicks,winCombs){

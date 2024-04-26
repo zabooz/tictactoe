@@ -22,6 +22,14 @@ header{
     justify-content: center;
     font-size: 3rem;
 }
+
+.greenBar span{
+    color:rgb(255, 255, 255)
+}
+.blueBar span{
+    color: white;
+}
+
 header h1{
     margin-left: 15rem;
     color: rgb(62, 192, 71);
