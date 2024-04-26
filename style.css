@@ -19,7 +19,7 @@ header{
     background-color: var(--primeColor) ;
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding-left: 2rem;
     font-size: 3rem;
 }
 
@@ -31,8 +31,8 @@ header{
 }
 
 header h1{
-    margin-left: 15rem;
     color: rgb(62, 192, 71);
+    margin-right: 4rem;
 }
 h2,h1{
     color: rgb(62, 192, 71);
