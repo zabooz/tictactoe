@@ -258,7 +258,9 @@
 
         barStats : function(){
 
-
+            const blueBar = this.blueBar
+            const greenBar = this.greenBar
+            const drawBar = this.drawBar
             const bar = ticTacToe.bar
             const playerOnePoints = ticTacToe.data.playerOne.points
             const playerTwoPoints = ticTacToe.data.playerTwo.points
@@ -415,14 +417,17 @@
             const [enemyPoss,enemyWin] = ticTacToe.aiLogic.enemyCombs(playerPicks,enemyPicks,winCombs)
             const dangerArr = []
             const bestArr   = []
+
             ticTacToe.aiLogic.dangerPick(enemyWin,enemyPicks,possPicks,dangerArr)
             ticTacToe.aiLogic.bestPick(playerWin,playerPicks,possPicks,bestArr)
             
             let pick;
+
             const difficulty =   player ==='playerOne' ? ticTacToe.data.difficultyAi1
                                                        : ticTacToe.data.difficultyAi2
-            console.log(playerWin,enemyWin,playerPoss,possPicks)
-             if((bestArr.length > 0 || dangerArr.length > 0) && !(difficulty == 0)){
+        
+
+            if((bestArr.length > 0 || dangerArr.length > 0) && !(difficulty == 0)){
                 pick = ticTacToe.aiLogic.necPick(bestArr,dangerArr)
                 
             }else{
@@ -432,9 +437,13 @@
                     case '2' : pick = ticTacToe.aiLogic.betterPick(playerWin,enemyWin,playerPoss,possPicks)   
                 }
             }
-                return pick
+
+            return pick
+
         },
         aiLogic :{
+
+            //
             rdmGen : function(arr){
                 
                 const rdm =  Math.floor(Math.random()*arr.length)
@@ -442,6 +451,7 @@
                 return arr[rdm]
 
             },
+            //noch mögliche Züge
             possiblePicks : function(playerOnePicks,playerTwoPicks){
                 
                 const possPicks = (function(){
@@ -459,140 +469,149 @@
                     })()
 
                     return possPicks
-                },
-                playerCombs : function(playerOnePicks,playerTwoPicks,winCombs){
+            },
 
-                    const getPossWins = (value) => !playerTwoPicks.includes(value)
-                    const checkPossWins = (value) => playerOnePicks.includes(value)
-                    const playerArr = []
-                    let playerWinArr = []
-                    
+            //mögliche GewinnKombinationen des spielers am zug
+            playerCombs : function(playerOnePicks,playerTwoPicks,winCombs){
 
-                    winCombs.forEach(comb => {
-                        if(comb.every(getPossWins)){
-                            playerArr.push(comb)
-                        }
-                    })
-                    
-                    playerArr.forEach(comb => {
-                        if(comb.some(checkPossWins)){
-                            playerWinArr.push(comb)
-                        }
-                    })
-                    
-                    if(playerWinArr.length === 0){
-                        playerWinArr = [...playerArr]
+                const getPossWins = (value) => !playerTwoPicks.includes(value)
+                const checkPossWins = (value) => playerOnePicks.includes(value)
+                const playerArr = []
+                let playerWinArr = []
+                
+
+                winCombs.forEach(comb => {
+                    if(comb.every(getPossWins)){
+                        playerArr.push(comb)
                     }
+                })
+                
+                playerArr.forEach(comb => {
+                    if(comb.some(checkPossWins)){
+                        playerWinArr.push(comb)
+                    }
+                })
+                
+                if(playerWinArr.length === 0){
+                    playerWinArr = [...playerArr]
+                }
 
+                //playerArr = gewinnkombinationen, ohne mindestens 1 treffer
+                //playerWinArr = gewinnKombination, mit mindestens 1 treffer
 
-                    return [playerArr,playerWinArr]
-                },
-                enemyCombs : function(playerOnePicks,playerTwoPicks,winCombs){
+                return [playerArr,playerWinArr]
+            },
+            //mögliche gewinn kombinationen des gegners
+            enemyCombs : function(playerOnePicks,playerTwoPicks,winCombs){
 
-                    const getPossWins = (value) => !playerOnePicks.includes(value) 
-                    const checkPossWins = (value) => playerTwoPicks.includes(value)
+                const getPossWins = (value) => !playerOnePicks.includes(value) 
+                const checkPossWins = (value) => playerTwoPicks.includes(value)
 
+                
+                
+                const enemyArr = []
+                const enemyWinArr = []
+
+                winCombs.forEach(comb => {
+                    if(comb.every(getPossWins)){
+                        enemyArr.push(comb)
+                    }
                     
-                    
-                    const enemyArr = []
-                    const enemyWinArr = []
+                })
+                
+                enemyArr.forEach(comb => {
+                    if(comb.some(checkPossWins)){
+                        
+                        enemyWinArr.push(comb)
+                    }
+                })
 
-                    winCombs.forEach(comb => {
-                        if(comb.every(getPossWins)){
-                            enemyArr.push(comb)
+                return [enemyArr,enemyWinArr]
+            },
+
+            // zug um zu verhindern das der Gegner gewinnt => 
+            //wenn 2 von 3 treffern einer kombination
+            dangerPick : function(enemyPicks,playerOnePicks,possPicks,dangerArr){
+
+                enemyPicks.forEach(comb => {
+                    let count = 0
+                    playerOnePicks.forEach(item => {
+                        if(comb.includes(item)){
+                            ++count
+                            if(count ===2){
+                                comb.forEach(item => {
+                                    if(possPicks.includes(item)){
+                                        dangerArr.push(item)
+                                    }
+                                })
+                            }
+                        }
+                    })
+                })
+
+            },
+            //zug um zu gewinnen wenn 2 von 3 treffern einer kombination
+            bestPick : function(winningArr,playerTwoPicks,possPicks,bestArr){
+                winningArr.forEach(comb => {
+                    let count = 0
+                    playerTwoPicks.forEach((item,index) => {
+                        if(comb.includes(item)){
+                            ++count
+                            if(count ===2){
+                                comb.forEach(item => {
+                                    if(possPicks.includes(item)){
+                                        bestArr.push(item)
+                                    }
+                                })
+                            }
+                        }
+                    })
+                })
+            },
+            //zufälliger pick
+            randomPick: function(possPicks){
+            
+                return this.rdmGen(possPicks)
+
+            },
+            //besserer zug , als zufällig
+            goodPick : function(winningArr,possArr,possPicks){
+
+                let array = []
+
+                if(winningArr.length > 0 || possArr.length > 0){
+
+                    let arr = winningArr.length > 0 ? [...winningArr] : [...possArr]
+                    arr = [...new Set(arr.flat())]
+                    arr.forEach(num => {
+                        
+                        if(possPicks.includes(num)){
+                            array.push(num)
                         }
                         
                     })
-                    
-                    enemyArr.forEach(comb => {
-                        if(comb.some(checkPossWins)){
-                            
-                            enemyWinArr.push(comb)
-                        }
-                    })
 
-                    return [enemyArr,enemyWinArr]
-                },
-                dangerPick : function(enemyPicks,playerOnePicks,possPicks,dangerArr){
-
-                    enemyPicks.forEach(comb => {
-                        let count = 0
-                        playerOnePicks.forEach(item => {
-                            if(comb.includes(item)){
-                                ++count
-                                if(count ===2){
-                                    comb.forEach(item => {
-                                        if(possPicks.includes(item)){
-                                            dangerArr.push(item)
-                                        }
-                                    })
-                                }
-                            }
-                        })
-                    })
-
-                },
-                bestPick : function(winningArr,playerTwoPicks,possPicks,bestArr){
-                    winningArr.forEach(comb => {
-                        let count = 0
-                        playerTwoPicks.forEach((item,index) => {
-                            if(comb.includes(item)){
-                                ++count
-                                if(count ===2){
-                                    comb.forEach(item => {
-                                        if(possPicks.includes(item)){
-                                            bestArr.push(item)
-                                        }
-                                    })
-                                }
-                            }
-                        })
-                    })
-                },
-                randomPick: function(possPicks){
+                }else{
+                    array = [...possPicks]
+                }
                 
-                    return this.rdmGen(possPicks)
+                return ticTacToe.aiLogic.rdmGen(array)
 
                 },
-                goodPick : function(winningArr,possArr,possPicks){
-
-                    let array = []
-
-                    if(winningArr.length > 0 || possArr.length > 0){
-
-                        let arr = winningArr.length > 0 ? [...winningArr] : [...possArr]
-                        arr = [...new Set(arr.flat())]
-                        arr.forEach(num => {
-                            
-                            if(possPicks.includes(num)){
-                                array.push(num)
-                            }
-                            
-                        })
-
-                    }else{
-                        array = [...possPicks]
-                    }
-                    
-                    return ticTacToe.aiLogic.rdmGen(array)
-
-                    },
-                necPick : function(bestArr,dangerArr){
-
-                    const array = bestArr.length > 0 ? bestArr : dangerArr
-
-                    return ticTacToe.aiLogic.rdmGen(array)
-                },
+                //noch besserer zug
                 betterPick : function(winArr,enemyWin,possArr,possPicks){
-    
+                    
                     let array = []
+
                     const enemyArr  = ticTacToe.aiLogic.getFrequence(enemyWin,possPicks)
                     const playerArr = ticTacToe.aiLogic.getFrequence(winArr,possPicks)
                     const middleMarker = ticTacToe.data.playerOne.picks.includes(4) ?
-                                         'enemy' : 'player'
-
+                    'enemy' : 'player'
+                    
                     const checkMiddle = middleMarker === 'player'
 
+
+                    //keine ahnung mehr, aber es funktioniert
                     if(winArr.length > 0){
                         array = playerArr.filter(num => enemyArr.includes(num))
                         if(array.length === 2 && checkMiddle){
@@ -601,35 +620,40 @@
                         if(array.length === 0){
                             array = playerArr
                         }
-
+                        
                     }else if(possArr.length > 0){
                         arr = ticTacToe.aiLogic.getFrequence(possArr,possPicks)
                         array = arr.filter(num => enemyArr.includes(num))
-
+                        
                     }else{
                         array = [...possPicks]
                     }
                     
-
-                    const pick = ticTacToe.aiLogic.rdmGen(array)
-
                     
-
-                    return pick
-
+                    return ticTacToe.aiLogic.rdmGen(array)
+                    
                 },
-                getFrequence : function(arr,possPicks){
+                //zug um zu gewinnen oder um nicht zu verlieren
+                necPick : function(bestArr,dangerArr){
 
+                    const array = bestArr.length > 0 ? bestArr : dangerArr
+
+                    return ticTacToe.aiLogic.rdmGen(array)
+                },
+                //zählt die felder,welche am häufigsten vorkommen in den 
+                //jeweiligen Kombination
+                getFrequence : function(arr,possPicks){
+                    
                     const count = {}
                     const numbers = arr.flat()
-
-
+                    
+                    
                     numbers.forEach(num => count[num] = (count[num] || 0) + 1 )
-
+                    
                     let maxfreq = 0;
-
+                    
                     let pickArr =[]
-
+                    
                     for(const num in count){
                         
 
