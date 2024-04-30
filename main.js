@@ -99,7 +99,7 @@
             const restart = ticTacToe.startBtn.textContent === 'Restart'
 
             if(restart){
-                ticTacToe.reset()
+                ticTacToe.reset(restart)
                 ticTacToe.data.round = 0
             }
             
@@ -128,17 +128,9 @@
         //bindet das event ans jeweilige Feld
         bindEvent : function(){
 
-            this.fields.forEach((field,index) => {
+            this.fields.forEach((field) => {
 
-
-                //ertellt event und sammelt es, um es später wieder
-                //entfernen zu können
-                const event = function(){
-                    return ticTacToe.round
-                }()
-                this.data.listener.push(event)
-
-                field.addEventListener('click',event)
+                field.addEventListener('click', this.round)
             })
             
             
@@ -162,9 +154,7 @@
         },
         //entfernt listener
         removeListener: function(field){
-            
-            const index = field.getAttribute('num')
-            field.removeEventListener('click', this.data.listener[index])
+            field.removeEventListener('click', this.round)
             
         },
         //startet eine Runde
@@ -309,7 +299,6 @@
 
                     ticTacToe.data.playerTwo.picks = []
                     ticTacToe.data.playerOne.picks = []
-                    ticTacToe.data.listener =[]
                     ticTacToe.data.turn = 'playerOne'
                     ticTacToe.data.move = 0
                     
@@ -321,7 +310,8 @@
 
 
                     //startet einen neue runde im AIVsAi modus + endless mode
-                    if(endlessMode){
+                    console.log(ticTacToe.data.playMode)
+                    if(endlessMode && ticTacToe.data.playMode ==='aiVsAi'){
                         ticTacToe.round()
                     }
 
