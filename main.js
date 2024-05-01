@@ -114,7 +114,6 @@
             ticTacToe.data.difficultyAi1 = ticTacToe.difficultyAi1.value
             
             if(playMode === 'humanVsAi' || playMode === 'humanOnly'){
-                ticTacToe.data.listener =[]
                 ticTacToe.bindEvent()
             }else{
                 ticTacToe.round()
@@ -310,7 +309,6 @@
 
 
                     //startet einen neue runde im AIVsAi modus + endless mode
-                    console.log(ticTacToe.data.playMode)
                     if(endlessMode && ticTacToe.data.playMode ==='aiVsAi'){
                         ticTacToe.round()
                     }
